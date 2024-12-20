@@ -4,6 +4,17 @@ int err(){
     printf("%s\n",strerror(errno));
     exit(1);
 }
+int randomInt() {
+    int randfile;
+    int randint;
+    randfile = open("/dev/random", O_RDONLY, 0);
+    if(randfile == -1) {
+        err();
+    }
+    read(randfile, &randint, 4);
+    //printf("randint: %d\n", *randint);
+    return randint;
+}
 //UPSTREAM = to the server / from the client
 //DOWNSTREAM = to the client / from the server
 /*=========================
@@ -17,12 +28,14 @@ int err(){
 int server_setup() {
   int from_client = 0;
   char name[15];
-  snprintf(name,14, getpid());
-  char * private = name;
-	if (mkfifo(private, 0666) < 0 ){
+  snprintf(name,14, "%d", getpid());
+	if (mkfifo(name, 0666) < 0 ){
 		err();
 	}
   from_client = open(WKP, O_RDONLY);
+  if (from_client < 0) {
+    err();
+  }
   remove(WKP);
   return from_client;
 }
@@ -38,6 +51,16 @@ int server_setup() {
   =========================*/
 int server_handshake(int *to_client) {
   int from_client;
+  char output[256];
+  int * randnum;
+  *randnum = randomInt();
+  from_client = open(WKP, O_RDONLY);
+  if (from_client < 0) {
+    err();
+  }
+  read(from_client, output, sizeof(output));
+  remove(WKP);
+  write(*to_client, randnum, 4);
   return from_client;
 }
 
