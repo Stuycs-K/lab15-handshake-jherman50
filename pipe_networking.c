@@ -29,14 +29,18 @@ int server_setup() {
   int from_client = 0;
   char name[15];
   snprintf(name,14, "%d", getpid());
+  printf("checkpoint1\n");
+  printf("name: %s\n", name);
 	if (mkfifo(name, 0666) < 0 ){
 		err();
 	}
   from_client = open(WKP, O_RDONLY);
+  printf("checkpoint2\n");
   if (from_client < 0) {
     err();
   }
   remove(WKP);
+  printf("checkpoint3\n");
   return from_client;
 }
 
@@ -51,16 +55,21 @@ int server_setup() {
   =========================*/
 int server_handshake(int *to_client) {
   int from_client;
-  char output[256];
+  int * output;
   int * randnum;
   *randnum = randomInt();
   from_client = open(WKP, O_RDONLY);
+  printf("checkpoint4\n");
   if (from_client < 0) {
     err();
   }
   read(from_client, output, sizeof(output));
+  printf("checkpoint5\n");
   remove(WKP);
-  write(*to_client, randnum, 4);
+  printf("checkpoint6\n");
+  pid_t subserver;
+  subserver = fork();
+  printf("checkpoint7\n");
   return from_client;
 }
 
@@ -76,6 +85,18 @@ int server_handshake(int *to_client) {
   =========================*/
 int client_handshake(int *to_server) {
   int from_server;
+  char name[15];
+  snprintf(name,14, "%d", getpid());
+  printf("checkpoint8\n");
+	if (mkfifo(name, 0666) < 0 ){
+		err();
+	}
+  *to_server = open(name, O_WRONLY);
+  printf("checkpoint9\n");
+  from_server = open(WKP, O_RDONLY);
+  printf("checkpoint10\n");
+  write(from_server, name, sizeof(name));
+  printf("checkpoint11\n");
   return from_server;
 }
 
