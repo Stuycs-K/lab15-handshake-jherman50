@@ -27,7 +27,7 @@ int randomInt() {
   =========================*/
 int server_setup() {
   int from_client = 0;
-	int * pp;
+	char pp[HANDSHAKE_BUFFER_SIZE];
 	if (mkfifo(WKP, 0666) < 0 ){
 		err();
 	}
@@ -38,7 +38,7 @@ int server_setup() {
 	if (read(from_client, pp, 4) < 0) {
 		err();
 	}
-	printf("pp: %d\n", *pp);
+	printf("pp: %s\n", pp);
 	remove(WKP);
   return from_client;
 }
@@ -74,7 +74,10 @@ int client_handshake(int *to_server) {
 	from_server = open(WKP, O_WRONLY, 0666);
 	int pid = getpid();
 	int * pidp = &pid;
-	write(from_server, pidp, 4);
+	char name[HANDSHAKE_BUFFER_SIZE];
+	snprintf(name, HANDSHAKE_BUFFER_SIZE, "%d", pid);
+	printf("%s\n", name);
+	write(from_server, name, HANDSHAKE_BUFFER_SIZE);
 	from_server = 0;
   return from_server;
 }
