@@ -119,6 +119,7 @@ int client_handshake(int *to_server) {
 	printf("random number: %d\n", randnum);
   randnum += 1;
 	write(*to_server, &randnum, 4);
+  remove(name);
   return *to_server;
 }
 
