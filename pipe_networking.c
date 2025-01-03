@@ -34,21 +34,9 @@ int server_setup() {
 	}
   from_client = open(WKP, O_RDONLY);
   if (from_client < 0) {
-		printf("here line 36\n");
+		printf("here line 37\n");
     err();
   }
-	if (read(from_client, pp, HANDSHAKE_BUFFER_SIZE) < 0) {
-		printf("here line 40\n");
-		err();
-	}
-	//char name[HANDSHAKE_BUFFER_SIZE];
-	//snprintf(name, HANDSHAKE_BUFFER_SIZE, "%d", *pp);
-	//printf("name: %s\n", name);
-	from_client = open(pp, O_RDWR);
-	if (from_client < 0) {
-		printf("here line 47\n");
-		err();
-	}
 	remove(WKP);
   return from_client;
 }
@@ -64,19 +52,28 @@ int server_setup() {
   =========================*/
 int server_handshake(int *to_client) {
   int from_client;
-	int * pid;
+	char pp[HANDSHAKE_BUFFER_SIZE];
 	from_client = server_setup();
 	if (from_client < 0) {
-		printf("here line 70\n");
+		printf("here line 58\n");
 		err();
 	}
-	if (read(*to_client, pid, 4) < 0) {
-		printf("here line 72\n");
+	char name[HANDSHAKE_BUFFER_SIZE];
+	char name1[HANDSHAKE_BUFFER_SIZE];
+	if (read(from_client, name, HANDSHAKE_BUFFER_SIZE) < 0) {
+		printf("here line 63\n");
 		err();
 	}
-	write(*to_client, pid, 4);
-	printf("wowzers\n");
-  return from_client;
+	*to_client = open(name, O_RDWR);
+	if (*to_client < 0) {
+		printf("here line 68\n");
+		err();
+	}
+	write(*to_client, name, HANDSHAKE_BUFFER_SIZE);
+	printf("name: %s\n", name);
+	read(*to_client, name1, HANDSHAKE_BUFFER_SIZE);
+	printf("updated name: %s\n", name1);
+  return *to_client;
 }
 
 
@@ -99,6 +96,7 @@ int client_handshake(int *to_server) {
 	int pid = getpid();
 	int * pidp = &pid;
 	char name[HANDSHAKE_BUFFER_SIZE];
+	char name1[HANDSHAKE_BUFFER_SIZE];
 	snprintf(name, HANDSHAKE_BUFFER_SIZE, "%d", pid);
 	printf("name: %s\n", name);
 	if (mkfifo(name, 0666) < 0 ){
@@ -111,6 +109,11 @@ int client_handshake(int *to_server) {
 		err();
 	}
 	write(from_server, name, HANDSHAKE_BUFFER_SIZE);
+	read(from_server, name, HANDSHAKE_BUFFER_SIZE);
+	snprintf(name1, HANDSHAKE_BUFFER_SIZE, "%d", pid + 1);
+	printf("updated name: %s\n", name1);
+	write(from_server, name1, HANDSHAKE_BUFFER_SIZE);
+	remove(name);
   return *to_server;
 }
 
