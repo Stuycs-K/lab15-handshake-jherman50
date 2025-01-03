@@ -53,6 +53,8 @@ int server_setup() {
 int server_handshake(int *to_client) {
   int from_client;
 	char pp[HANDSHAKE_BUFFER_SIZE];
+	char randnum[HANDSHAKE_BUFFER_SIZE];
+	int randnumfr = randomInt();
 	from_client = server_setup();
 	if (from_client < 0) {
 		printf("here line 58\n");
@@ -64,15 +66,18 @@ int server_handshake(int *to_client) {
 		printf("here line 63\n");
 		err();
 	}
-	*to_client = open(name, O_RDWR);
+	*to_client = open(name, O_WRONLY);
 	if (*to_client < 0) {
 		printf("here line 68\n");
 		err();
 	}
-	write(*to_client, name, HANDSHAKE_BUFFER_SIZE);
-	printf("name: %s\n", name);
-	read(*to_client, name1, HANDSHAKE_BUFFER_SIZE);
-	printf("updated name: %s\n", name1);
+	snprintf(randnum, HANDSHAKE_BUFFER_SIZE, "%d", randnumfr);
+	write(*to_client, randnum, HANDSHAKE_BUFFER_SIZE);
+	printf("random number: %s\n", randnum);
+	*to_client = open(name, O_RDONLY);
+	read(*to_client, randnum, HANDSHAKE_BUFFER_SIZE);
+	printf("updated number: %s\n", randnum);
+	remove(name);
   return *to_client;
 }
 
@@ -109,11 +114,9 @@ int client_handshake(int *to_server) {
 		err();
 	}
 	write(from_server, name, HANDSHAKE_BUFFER_SIZE);
-	read(from_server, name, HANDSHAKE_BUFFER_SIZE);
-	snprintf(name1, HANDSHAKE_BUFFER_SIZE, "%d", pid + 1);
-	printf("updated name: %s\n", name1);
+	read(from_server, name1, HANDSHAKE_BUFFER_SIZE);
+	printf("random number: %s\n", name1);
 	write(from_server, name1, HANDSHAKE_BUFFER_SIZE);
-	remove(name);
   return *to_server;
 }
 
