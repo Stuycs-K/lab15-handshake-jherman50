@@ -67,7 +67,7 @@ int server_handshake(int *to_client) {
 		printf("here line 63\n");
 		err();
 	}
-	*to_client = open(name, O_RDWR);
+	*to_client = open(name, O_WRONLY);
 	if (*to_client < 0) {
 		printf("here line 68\n");
 		err();
@@ -108,14 +108,17 @@ int client_handshake(int *to_server) {
 		printf("here line 103\n");
 		err();
 	}
+	write(from_server, name, HANDSHAKE_BUFFER_SIZE);
+	printf("here line 116\n");
 	*to_server = open(name, O_RDWR);
+	from_server = open(name, O_RDONLY);
 	if (*to_server < 0) {
 		printf("here line 108\n");
 		err();
 	}
-	write(from_server, name, HANDSHAKE_BUFFER_SIZE);
+	printf("here line 117\n");
   //*to_server = open(name, O_RDONLY);
-	read(*to_server, &randnum, 4);
+	read(from_server, &randnum, 4);
 	printf("random number: %d\n", randnum);
   randnum += 1;
 	write(*to_server, &randnum, 4);
