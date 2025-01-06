@@ -109,14 +109,14 @@ int client_handshake(int *to_server) {
 		err();
 	}
 	write(from_server, name, HANDSHAKE_BUFFER_SIZE);
-	printf("here line 116\n");
+	//printf("here line 116\n");
 	*to_server = open(name, O_RDWR);
 	from_server = open(name, O_RDONLY);
 	if (*to_server < 0) {
 		printf("here line 108\n");
 		err();
 	}
-	printf("here line 117\n");
+	//printf("here line 117\n");
   //*to_server = open(name, O_RDONLY);
 	read(from_server, &randnum, 4);
 	printf("random number: %d\n", randnum);
