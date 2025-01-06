@@ -1,6 +1,6 @@
 #include "pipe_networking.h"
 
-void sighand(int sig) {
+static void sighand(int sig) {
 	printf("server ended\n");
 	remove(WKP);
 	exit(0); 
