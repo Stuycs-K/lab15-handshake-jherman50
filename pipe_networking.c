@@ -1,4 +1,10 @@
 #include "pipe_networking.h"
+static void sighand(int sig) {
+	printf("server ended\n");
+	remove(WKP);
+	exit(0);
+}
+
 int err(){
     printf("errno %d\n",errno);
     printf("%s\n",strerror(errno));
@@ -41,6 +47,21 @@ int server_setup() {
   return from_client;
 }
 
+int server_handshake_half(int *to_client, int from_client) {
+	int randnumfr;
+	if (read(from_client, &randnumfr, sizeof(randnumfr)) < 0) {
+		err();
+	}
+	printf("random number: %d\n", randnumfr);
+	randnumfr += 1;
+	if (write(*to_client, &randnumfr, sizeof(randnumfr)) < 0) {
+		perror("Failed to send updated number to client");
+		exit(1);
+	}
+	printf("updated number: %d\n", randnumfr);
+	return *to_client;
+}
+
 /*=========================
   server_handshake
   args: int * to_client
@@ -51,18 +72,15 @@ int server_setup() {
   returns the file descriptor for the upstream pipe (see server setup).
   =========================*/
 int server_handshake(int *to_client) {
-  int from_client;
-	char pp[HANDSHAKE_BUFFER_SIZE];
-	char randnum[HANDSHAKE_BUFFER_SIZE];
 	int randnumfr;
-  randnumfr = randomInt();
+	srand(time(NULL));
+  int from_client;
 	from_client = server_setup();
 	if (from_client < 0) {
 		printf("here line 58\n");
 		err();
 	}
 	char name[HANDSHAKE_BUFFER_SIZE];
-	char name1[HANDSHAKE_BUFFER_SIZE];
 	if (read(from_client, name, HANDSHAKE_BUFFER_SIZE) < 0) {
 		printf("here line 63\n");
 		err();
@@ -72,12 +90,14 @@ int server_handshake(int *to_client) {
 		printf("here line 68\n");
 		err();
 	}
+	from_client = open(name, O_RDONLY);
+	signal(SIGINT, sighand);
+	randnumfr = rand() % 101;
 	write(*to_client, &randnumfr, 4);
 	printf("random number: %d\n", randnumfr);
-	from_client = open(name, O_RDONLY);
 	read(from_client, &randnumfr, 4);
 	printf("updated number: %d\n", randnumfr);
-	remove(name);
+	close(from_client);
   return *to_client;
 }
 
@@ -103,26 +123,24 @@ int client_handshake(int *to_server) {
 	char name[HANDSHAKE_BUFFER_SIZE];
 	int randnum;
 	snprintf(name, HANDSHAKE_BUFFER_SIZE, "%d", pid);
-	printf("name: %s\n", name);
+	//printf("name: %s\n", name);
 	if (mkfifo(name, 0666) < 0 ){
 		printf("here line 103\n");
 		err();
 	}
 	write(from_server, name, HANDSHAKE_BUFFER_SIZE);
-	//printf("here line 116\n");
 	*to_server = open(name, O_RDWR);
 	from_server = open(name, O_RDONLY);
 	if (*to_server < 0) {
 		printf("here line 108\n");
 		err();
 	}
-	//printf("here line 117\n");
-  //*to_server = open(name, O_RDONLY);
+	signal(SIGINT, sighand);
 	read(from_server, &randnum, 4);
 	printf("random number: %d\n", randnum);
-  randnum += 1;
+	randnum += 1;
 	write(*to_server, &randnum, 4);
-  remove(name);
+	remove(name);
   return *to_server;
 }
 
