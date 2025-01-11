@@ -6,6 +6,8 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <errno.h>
+#include <signal.h>
+#include <time.h>
 
 #ifndef NETWORKING_H
 #define NETWORKING_H
@@ -22,16 +24,15 @@
 #define EXIT 4
 #define SIGINT 2
 
+int err();
+int randomInt();
+static void sighand(int sig);
+
 int server_handshake(int *to_client);
 int client_handshake(int *to_server);
-
-//for basic & persistent servers
-int server_connect(int from_client);
+int server_handshake_half(int *to_client, int from_client);
 
 //for forking server
 int server_setup();
-
-//multi_server
-int multi_server_setup();
 
 #endif
