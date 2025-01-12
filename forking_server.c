@@ -4,6 +4,7 @@ static void sighand(int sig) {
 	remove(WKP);
 	exit(0);
 }
+static int counter;
 
 int main() {
 	int to_client;
@@ -17,18 +18,18 @@ int main() {
 			err();
 		}
 		else if (pid == 0) {
-			close(from_client);
+			//printf("i am child %d\n", counter++);
 			server_handshake_half(&to_client, from_client);
 			while(1) {
-				int randnum = randomInt() % 101;
-				if (write(to_client, &randnum, sizeof(randnum)) < 0) {
-					err();
-				}
+				char text[256];
+				read(from_client, text, sizeof(text));
+				printf("message received: %s\n", text);
 				sleep(1);
 			}
 		}
 		else {
 			close(from_client);
+			close(to_client);
 		}
 	}
 }

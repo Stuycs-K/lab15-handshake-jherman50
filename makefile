@@ -1,4 +1,4 @@
-compile: clienttemp servertemp persistenttemp
+compile: clienttemp servertemp persistenttemp forkingtemp
 server: forkingtemp
 	@./forkings
 client: clienttemp

@@ -1,19 +1,13 @@
 #include "pipe_networking.h"
 
-static void sighand(int sig) {
-	printf("server ended\n");
-	remove(WKP);
-	exit(0);
-}
-
 int main() {
-	signal(SIGINT, sighand);
 	int to_server;
 	int from_server;
+	from_server = client_handshake( &to_server );
 	while (1) {
-		from_server = client_handshake( &to_server );
-		close(from_server);
-		close(to_server);
+		char text[] = "im a client";
+		write(to_server, text, sizeof(text));
+		printf("message sent: %s\n", text);
 		sleep(1);
 	}
 }
